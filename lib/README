@@ -1,0 +1,2 @@
+../bin/gpp expects this directory to be here. Unless I add some unmanaged libs,
+this file is just here to ensure the directory exists.
