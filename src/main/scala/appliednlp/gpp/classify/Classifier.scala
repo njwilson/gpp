@@ -46,7 +46,7 @@ object LexiconPolarityClassifier extends SimpleTweetClassifier {
  * Extended featurizer for tweet sentiment analysis.
  */
 object ExtendedFeaturizer extends Featurizer[String, String] {
-  import appliednlp.gpp.util.English
+  import appliednlp.gpp.util.{English, Polarity}
   import chalk.lang.eng.{PorterStemmer, Twokenize}
   import nak.data.FeatureObservation
 
@@ -66,6 +66,22 @@ object ExtendedFeaturizer extends Featurizer[String, String] {
       FeatureObservation("stemmed_word=" + stemmer(token))
     }
 
-    bowFeatures ++ stemmedBowFeatures
+    // Polarity features
+    val numPos = lowerTokens.count(Polarity.posWords)
+    val numNeg = lowerTokens.count(Polarity.negWords)
+    val numTotal = lowerTokens.length
+    val numNeut = numTotal - numPos - numNeg
+    val posNegRatio = (numPos + 1).toDouble / (numNeg + 1)
+    val polInfo = Seq(("positive", numPos), ("negative", numNeg), ("neutral", numNeut))
+    val polarityFeatures = polInfo.flatMap {
+      case (polarity, count) =>
+        Seq(
+          FeatureObservation("polarity=" + polarity, count),
+          FeatureObservation("polarity_" + polarity + "_ratio", count.toDouble / numTotal))
+    } ++ Seq(
+      FeatureObservation("polarity_pos_neg_ratio", posNegRatio))
+
+    val features = bowFeatures ++ stemmedBowFeatures ++ polarityFeatures
+    features
   }
 }
