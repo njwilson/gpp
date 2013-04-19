@@ -47,18 +47,25 @@ object LexiconPolarityClassifier extends SimpleTweetClassifier {
  */
 object ExtendedFeaturizer extends Featurizer[String, String] {
   import appliednlp.gpp.util.English
-  import chalk.lang.eng.Twokenize
+  import chalk.lang.eng.{PorterStemmer, Twokenize}
   import nak.data.FeatureObservation
 
   def apply(content: String): Seq[FeatureObservation[String]] = {
     val tokens = Twokenize(content)
     val lowerTokens = tokens.map(_.toLowerCase)
+    val lowerTokensNoStopwords = lowerTokens.filterNot(English.stopwords)
 
     // Bag of words
-    val bowFeatures = lowerTokens.filterNot(English.stopwords).map { token =>
+    val bowFeatures = lowerTokensNoStopwords.map { token =>
       FeatureObservation("word=" + token)
     }
 
-    bowFeatures
+    // Stemmed bag of words
+    val stemmer = new PorterStemmer
+    val stemmedBowFeatures = lowerTokensNoStopwords.map { token =>
+      FeatureObservation("stemmed_word=" + stemmer(token))
+    }
+
+    bowFeatures ++ stemmedBowFeatures
   }
 }
