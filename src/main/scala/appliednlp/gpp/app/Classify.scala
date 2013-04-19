@@ -1,12 +1,53 @@
 package appliednlp.gpp.app
 
+import nak.NakContext
+import nak.data.Example
+import nak.util.ConfusionMatrix
+
+import appliednlp.gpp.classify._
+
+
 /**
  * A standalone object with a main method for doing classification experiments.
-*/
+ */
 object Classify {
   def main(args: Array[String]) {
     // Parse and get the command-line options
     val opts = ClassifyOpts(args)
+
+    // Read the datasets
+    val trainExamples = readExamples(opts.train())
+    val evalExamples = readExamples(opts.eval())
+
+    // Train the classifier
+    val method = opts.method()
+    val classifier = method match {
+      case "majority" => new MajorityPolarityClassifier(trainExamples)
+      case "lexicon" => LexiconPolarityClassifier
+    }
+
+    // Predict the evaluation data
+    val comparisons = {
+      classifier match {
+        case simpleClf: SimpleTweetClassifier => {
+          for (ex <- evalExamples)
+            yield (ex.label, simpleClf(ex.features), ex.features)
+        }
+      }
+    }
+
+    // Print the confusion matrix
+    val (goldLabels, predictions, inputs) = comparisons.toSeq.unzip3
+    println(ConfusionMatrix(goldLabels, predictions, inputs))
+  }
+
+  def readExamples(filenames: List[String]): Iterator[Example[String, String]] = {
+    val tweetSentiments = filenames.toIterator.flatMap { filename =>
+      XMLTweetSentimentReader(filename)
+    }
+    tweetSentiments.map {
+      case (tweet, sentiment) => Example(sentiment.label, tweet.content, tweet.id)
+    }
   }
 }
 
