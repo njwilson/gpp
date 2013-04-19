@@ -1,10 +1,13 @@
 package appliednlp.gpp.app
 
 import nak.NakContext
-import nak.data.Example
+import nak.core.FeaturizedClassifier
+import nak.data.{BowFeaturizer,Example}
+import nak.liblinear
 import nak.util.ConfusionMatrix
 
 import appliednlp.gpp.classify._
+import appliednlp.gpp.util.English
 
 
 /**
@@ -24,6 +27,15 @@ object Classify {
     val classifier = method match {
       case "majority" => new MajorityPolarityClassifier(trainExamples)
       case "lexicon" => LexiconPolarityClassifier
+      case _ => {   // Assume Liblinear solver
+        val solverType = liblinear.Solver(method)
+        val config = liblinear.LiblinearConfig(
+          solverType = solverType,
+          cost = opts.cost(),
+          showDebug = opts.verbose())
+        val featurizer = new BowFeaturizer(English.stopwords)
+        NakContext.trainClassifier(config, featurizer, trainExamples.toList)
+      }
     }
 
     // Predict the evaluation data
@@ -32,6 +44,11 @@ object Classify {
         case simpleClf: SimpleTweetClassifier => {
           for (ex <- evalExamples)
             yield (ex.label, simpleClf(ex.features), ex.features)
+        }
+        case nakClf: FeaturizedClassifier[String, String] => {
+          val maxLabel = NakContext.maxLabel(nakClf.labels) _
+          for (ex <- evalExamples)
+            yield (ex.label, maxLabel(nakClf.evalRaw(ex.features)), ex.features)
         }
       }
     }
