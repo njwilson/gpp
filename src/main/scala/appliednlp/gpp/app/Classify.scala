@@ -2,7 +2,7 @@ package appliednlp.gpp.app
 
 import nak.NakContext
 import nak.core.FeaturizedClassifier
-import nak.data.{BowFeaturizer,Example}
+import nak.data.{Featurizer, BowFeaturizer, Example}
 import nak.liblinear
 import nak.util.ConfusionMatrix
 
@@ -28,12 +28,21 @@ object Classify {
       case "majority" => new MajorityPolarityClassifier(trainExamples)
       case "lexicon" => LexiconPolarityClassifier
       case _ => {   // Assume Liblinear solver
+        // Construct appropriate featurizer
+        val featurizer = {
+          if (opts.extended()) {
+            ExtendedFeaturizer
+          } else {
+            new BowFeaturizer(English.stopwords)
+          }
+        }
+
+        // Configure and train
         val solverType = liblinear.Solver(method)
         val config = liblinear.LiblinearConfig(
           solverType = solverType,
           cost = opts.cost(),
           showDebug = opts.verbose())
-        val featurizer = new BowFeaturizer(English.stopwords)
         NakContext.trainClassifier(config, featurizer, trainExamples.toList)
       }
     }

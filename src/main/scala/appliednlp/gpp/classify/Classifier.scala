@@ -1,7 +1,6 @@
 package appliednlp.gpp.classify
 
-import chalk.lang.eng.Twokenize
-import nak.data.Example
+import nak.data.{Example,Featurizer,FeatureObservation}
 
 
 /*
@@ -29,6 +28,7 @@ extends SimpleTweetClassifier {
  */
 object LexiconPolarityClassifier extends SimpleTweetClassifier {
   import appliednlp.gpp.util.Polarity
+  import chalk.lang.eng.Twokenize
 
   def apply(content: String): String = {
     val tokens = Twokenize(content)
@@ -39,5 +39,26 @@ object LexiconPolarityClassifier extends SimpleTweetClassifier {
     } else {
       if (numPos > numNeg) "positive" else "negative"
     }
+  }
+}
+
+/*
+ * Extended featurizer for tweet sentiment analysis.
+ */
+object ExtendedFeaturizer extends Featurizer[String, String] {
+  import appliednlp.gpp.util.English
+  import chalk.lang.eng.Twokenize
+  import nak.data.FeatureObservation
+
+  def apply(content: String): Seq[FeatureObservation[String]] = {
+    val tokens = Twokenize(content)
+    val lowerTokens = tokens.map(_.toLowerCase)
+
+    // Bag of words
+    val bowFeatures = lowerTokens.filterNot(English.stopwords).map { token =>
+      FeatureObservation("word=" + token)
+    }
+
+    bowFeatures
   }
 }
