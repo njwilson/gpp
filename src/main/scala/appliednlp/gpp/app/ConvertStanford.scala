@@ -1,17 +1,7 @@
 package appliednlp.gpp.app
 
+import appliednlp.gpp.classify.LabeledTweet
 
-case class LabeledTweet(
-    label: String,
-    target: String,
-    tweetid: String,
-    username: String,
-    content: String) {
-  def toXML =
-    <item label={label} target={target} tweetid={tweetid} username={username}>
-      <content>{content}</content>
-    </item>
-}
 
 /**
  * A standalone object with a main method for converting the Stanford tweets

@@ -32,6 +32,8 @@ gpp 0.1 commands:
 
   run              run the main method of a given class
   exp              run the classification experiments
+  convert-stanford convert from Stanford tweets
+  convert-emoticon convert from emoticon tweets
 
 Include --help with any option for more information
 EOF
@@ -43,6 +45,7 @@ case $CMD in
     run) CLASS=$1; shift;;
     exp) CLASS=appliednlp.gpp.app.Classify;;
     convert-stanford) CLASS=appliednlp.gpp.app.ConvertStanford;;
+    convert-emoticon) CLASS=appliednlp.gpp.app.ConvertEmoticon;;
     help) help; exit 1;;
     *) echo "Unrecognized command: $CMD"; help; exit 1;;
 esac

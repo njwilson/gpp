@@ -4,3 +4,4 @@ target/
 .classpath
 *.class
 data/stanford/dev.xml
+data/emoticon/train.xml
