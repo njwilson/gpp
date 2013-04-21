@@ -64,7 +64,9 @@ object Classify {
 
     // Print the confusion matrix
     val (goldLabels, predictions, inputs) = comparisons.toSeq.unzip3
-    println(ConfusionMatrix(goldLabels, predictions, inputs))
+    val confusion = ConfusionMatrix(goldLabels, predictions, inputs)
+    val output = if (opts.detailed()) confusion.detailedOutput else confusion.toString
+    println(output)
   }
 
   def readExamples(filenames: List[String]): Iterator[Example[String, String]] = {
