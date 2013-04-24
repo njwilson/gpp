@@ -18,6 +18,11 @@ object Classify {
     // Parse and get the command-line options
     val opts = ClassifyOpts(args)
 
+    if (opts.version()) {
+      println("Version 0.1")
+      return
+    }
+
     // Read the datasets
     val trainExamples = readExamples(opts.train())
     val evalExamples = readExamples(opts.eval())
